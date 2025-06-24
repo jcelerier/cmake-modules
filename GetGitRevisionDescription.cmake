@@ -163,9 +163,15 @@ function(get_git_head_revision _refspecvar _hashvar)
     set(HEAD_FILE "${GIT_DATA}/HEAD")
     configure_file("${HEAD_SOURCE_FILE}" "${HEAD_FILE}" COPYONLY)
 
-    configure_file("${_gitdescmoddir}/GetGitRevisionDescription.cmake.in"
-                   "${GIT_DATA}/grabRef.cmake" @ONLY)
-    include("${GIT_DATA}/grabRef.cmake")
+    if(CMAKE_VERSION VERSION_LESS 3.18)
+        configure_file("${_gitdescmoddir}/GetGitRevisionDescription.cmake.in"
+                       "${GIT_DATA}/grabRef.cmake" @ONLY)
+        include("${GIT_DATA}/grabRef.cmake")
+    else()
+        file(READ "${_gitdescmoddir}/GetGitRevisionDescription.cmake.in" GRABREF_CMAKE_RAW_CONTENT)
+        string(CONFIGURE "${GRABREF_CMAKE_RAW_CONTENT}" GRABREF_CMAKE_CONTENT @ONLY)
+        cmake_language(EVAL CODE "${GRABREF_CMAKE_CONTENT}")
+    endif()
 
     set(${_refspecvar}
         "${HEAD_REF}"
